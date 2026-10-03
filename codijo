@@ -1,0 +1,318 @@
+# ==========================================
+# INSTALAR IMAGEAI
+# ==========================================
+
+!pip install ImageAI
+
+
+# ==========================================
+# IMPORTACIONES
+# ==========================================
+
+from imageai.Detection import ObjectDetection
+from google.colab import files
+from google.colab.patches import cv2_imshow
+
+from PIL import Image
+import cv2
+import os
+
+
+# ==========================================
+# 1. DETECTAR OBJETOS EN LA CARRETERA
+# ==========================================
+
+def detect_objects_on_road(input_image, output_image, model_path):
+
+    # --------------------------------------
+    # SUBIR IMAGEN
+    # --------------------------------------
+
+    if input_image is None:
+
+        print()
+        print("======================================")
+        print("       SELECCIONAR IMAGEN")
+        print("======================================")
+        print("Selecciona una imagen desde tu computadora.")
+        print()
+
+        uploaded = files.upload()
+
+        if not uploaded:
+            print("No se seleccionó ninguna imagen.")
+            return []
+
+        # Nombre del archivo original
+        original_name = list(uploaded.keys())[0]
+
+        print()
+        print("Imagen seleccionada:", original_name)
+
+        # --------------------------------------
+        # CONVERTIR LA IMAGEN A JPG
+        # --------------------------------------
+
+        try:
+
+            image = Image.open(original_name)
+
+            # Convertir a RGB
+            image = image.convert("RGB")
+
+            # Guardar como JPG
+            input_image = "/content/input_image.jpg"
+
+            image.save(
+                input_image,
+                "JPEG",
+                quality=95
+            )
+
+            print("Imagen convertida correctamente a JPG.")
+
+        except Exception as e:
+
+            print("Error al convertir la imagen:", e)
+            return []
+
+    # --------------------------------------
+    # COMPROBAR QUE EXISTE LA IMAGEN
+    # --------------------------------------
+
+    if not os.path.exists(input_image):
+
+        print("ERROR: No se encontró la imagen:")
+        print(input_image)
+
+        return []
+
+    # --------------------------------------
+    # CREAR DETECTOR
+    # --------------------------------------
+
+    detector = ObjectDetection()
+
+    # Configurar YOLOv3
+    detector.setModelTypeAsYOLOv3()
+
+    detector.setModelPath(model_path)
+
+    # --------------------------------------
+    # CARGAR MODELO
+    # --------------------------------------
+
+    print()
+    print("Cargando modelo YOLOv3...")
+
+    detector.loadModel()
+
+    print("Modelo cargado correctamente.")
+
+    # --------------------------------------
+    # DETECTAR OBJETOS
+    # --------------------------------------
+
+    print()
+    print("Analizando imagen...")
+
+    detections = detector.detectObjectsFromImage(
+        input_image=input_image,
+        output_image_path=output_image,
+        minimum_percentage_probability=30
+    )
+
+    # --------------------------------------
+    # MOSTRAR OBJETOS
+    # --------------------------------------
+
+    print()
+    print("======================================")
+    print("        OBJETOS DETECTADOS")
+    print("======================================")
+
+    if not detections:
+
+        print("No se detectaron objetos.")
+
+    else:
+
+        for eachObject in detections:
+
+            print(
+                eachObject["name"],
+                ":",
+                round(
+                    eachObject["percentage_probability"],
+                    2
+                ),
+                "%",
+                ":",
+                eachObject["box_points"]
+            )
+
+            print("--------------------------------------")
+
+    return detections
+
+
+# ==========================================
+# 2. ANALIZAR OBJETOS
+# ==========================================
+
+def analyze_objects(detections):
+
+    print()
+    print("======================================")
+    print("       ANÁLISIS DE LA CARRETERA")
+    print("======================================")
+
+    if not detections:
+
+        print("No se detectaron objetos.")
+        return
+
+    for eachObject in detections:
+
+        nombre = eachObject["name"]
+
+        probabilidad = (
+            eachObject["percentage_probability"]
+        )
+
+        caja = eachObject["box_points"]
+
+        print()
+        print("Objeto:", nombre)
+
+        print(
+            "Probabilidad:",
+            round(probabilidad, 2),
+            "%"
+        )
+
+        print("Posición:", caja)
+
+        print("--------------------------------------")
+
+
+# ==========================================
+# 3. NORMAS DE SEGURIDAD VIAL
+# ==========================================
+
+def road_safety_rules():
+
+    print()
+    print("======================================")
+    print("       NORMAS DE SEGURIDAD VIAL")
+    print("======================================")
+
+    print()
+
+    print(
+        "Hola, soy SafetyAI, una aplicación "
+        "de seguridad vial."
+    )
+
+    print(
+        "Las normas de seguridad vial son muy "
+        "importantes, y yo te ayudaré a recordarlas."
+    )
+
+    print(
+        "Recuerde: ¡es muy importante respetar "
+        "las normas de seguridad vial y ser "
+        "precavido al acercarse a la carretera!"
+    )
+
+    print(
+        "Utiliza los semáforos y los pasos de peatones."
+    )
+
+    print(
+        "Nunca cruces una carretera por lugares "
+        "que no estén diseñados para ello."
+    )
+
+    print(
+        "Recuerde que, al cruzar una carretera, "
+        "debe ser igualmente prudente y previsible."
+    )
+
+    print(
+        "Tenga cuidado en la carretera y ¡buena suerte!"
+    )
+
+
+# ==========================================
+# PROGRAMA PRINCIPAL
+# ==========================================
+
+print()
+print("======================================")
+print("            SAFETYAI")
+print("      SEGURIDAD VIAL CON IA")
+print("======================================")
+print()
+
+
+# ------------------------------------------
+# CONFIGURACIÓN
+# ------------------------------------------
+
+input_image = None
+
+output_image = "/content/output_image.jpg"
+
+model_path = "/content/yolov3.pt"
+
+
+# ------------------------------------------
+# 1. DETECTAR OBJETOS
+# ------------------------------------------
+
+detections = detect_objects_on_road(
+    input_image,
+    output_image,
+    model_path
+)
+
+
+# ------------------------------------------
+# 2. ANALIZAR OBJETOS
+# ------------------------------------------
+
+analyze_objects(detections)
+
+
+# ------------------------------------------
+# 3. NORMAS DE SEGURIDAD
+# ------------------------------------------
+
+road_safety_rules()
+
+
+# ------------------------------------------
+# 4. MOSTRAR IMAGEN
+# ------------------------------------------
+
+print()
+print("======================================")
+print("          IMAGEN ANALIZADA")
+print("======================================")
+
+if os.path.exists(output_image):
+
+    img = cv2.imread(output_image)
+
+    if img is not None:
+
+        cv2_imshow(img)
+
+    else:
+
+        print("No se pudo leer la imagen resultante.")
+
+else:
+
+    print("No se generó la imagen de salida.")
